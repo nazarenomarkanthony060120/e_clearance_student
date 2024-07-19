@@ -1,0 +1,1 @@
+//ayaw ni hilabti ky e delete natu ni nig start
