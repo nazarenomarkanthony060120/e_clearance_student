@@ -1,5 +1,3 @@
-import ReturnToLogin from '@/components/create_student_account/button/backtologin/backtologin'
-import SubmitButton from '@/components/create_student_account/button/submit/submit'
 import CreateStudentAccount from '@/components/create_student_account/create_student_form/create_student_account'
 import { MdOutlineCreate } from 'react-icons/md'
 
@@ -13,10 +11,6 @@ const RegisterAccount = () => {
                 <span className="text-2xl font-bold text-[#d6543a] ">STUDENT REGISTER</span>
                 </div>
                   <CreateStudentAccount/>
-                <div className="flex flex-col gap-5">
-                  <SubmitButton/>
-                  <ReturnToLogin/>
-                </div>
             </div>
           </div>
       </div>
