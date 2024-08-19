@@ -1,8 +1,8 @@
 'use client'
 import React, { useState } from 'react';
 import Sidebar from '@/components/student_sidebar/student_sidebar';
-import ViewClearance  from '@/components/student_clearance/student_clearance/student_clearance';
-import ApprovedClearance  from '@/components/student_clearance/approved_clearance/approved_clearance';
+import ViewClearance from '@/components/student_clearance/student_clearance/student_clearance';
+import ApprovedClearance from '@/components/student_clearance/approved_clearance/approved_clearance';
 import Header from '@/components/header/header';
 
 

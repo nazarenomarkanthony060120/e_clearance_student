@@ -30,7 +30,8 @@ const StudentSidebar = ({ setCurrentSection }: any) => {
     }, 3000); // 3-second delay for demonstration
   };
 
-  const [open, setOpen] = useState(false);
+  // Set the initial state of 'open' to true to make the sidebar open by default
+  const [open, setOpen] = useState(true);
 
   return (
     <div className={`flex ${open ? 'w-72' : 'w-16'} bg-gray-900 text-white duration-500`}>
