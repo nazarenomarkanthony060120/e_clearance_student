@@ -233,9 +233,9 @@ function StudentClearanceView() {
   return (
     <div className="min-h-screen text-gray-800">
       <section className="px-8 py-12">
-        <div className="container mx-auto text-center mb-8">
+        {/* <div className="container mx-auto text-center mb-8">
           <h1 className="text-3xl font-bold text-orange-600">Student Clearance</h1>
-        </div>
+        </div> */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {clearances.map((clearance, index) => (
             <div key={index} className="relative bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">

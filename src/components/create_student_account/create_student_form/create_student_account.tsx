@@ -46,34 +46,50 @@ const CreateStudentAccount = () => {
   const [confirmPassword, SetConfirmPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const router = useRouter()
+  const router = useRouter();
 
   const capitalizeFullName = (name: string) => {
     return name.replace(/\b\w/g, char => char.toUpperCase());
   };
 
+  const formatStudentID = (value: string) => {
+    // Remove all non-digit characters
+    const digits = value.replace(/\D/g, '');
+    // Add a hyphen after the first 6 digits only
+    const formatted = digits.length > 6 ? `${digits.slice(0, 6)}-${digits.slice(6)}` : digits;
+    return formatted;
+  };
+
+  const handleStudentIDChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatStudentID(e.target.value);
+    setStudentID(formattedValue);
+  };
+
   const handleRegisterSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!studentID || !fullName || !email || !password || !confirmPassword ) {
-      setErrorMsg('Both fields are required.');
+    if (!studentID || !fullName || !email || !password || !confirmPassword) {
+      setErrorMsg('All fields are required.');
       return;
     }
-    else if (password != confirmPassword){
-      setErrorMsg('Password does not Match');
+    if (password !== confirmPassword) {
+      setErrorMsg('Passwords do not match.');
       return;
     }
-    router.push('/login')
+    router.push('/login');
     setErrorMsg(null);
-        console.log('Submitting:', { studentID, fullName, email, password, confirmPassword });
-  }
+    console.log('Submitting:', { studentID, fullName, email, password, confirmPassword });
+  };
 
   return (
     <form onSubmit={handleRegisterSubmit} className='flex flex-col gap-8 h-full'>
       {errorMsg && <p className="text-red-500">{errorMsg}</p>}
       <div className="w-full flex flex-col gap-2">
-          <input type="number" className="w-full p-2 shadow-lg border text-center" placeholder="Input your Student ID" 
+          <input
+            type="text"
+            className="w-full p-2 shadow-lg border text-center"
+            placeholder="Input your Student ID"
             value={studentID}
-            onChange={(e) => setStudentID(e.target.value)} 
+            onChange={handleStudentIDChange}
             required
           />
           <input 
