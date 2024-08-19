@@ -19,7 +19,7 @@ const LoginForm = () => {
             setError('Both fields are required.');
             return;
         }
-        router.push('/view_clearance')
+        router.push('/home')
         setError(null);
         console.log('Submitting:', { email, password });
     }
@@ -45,7 +45,7 @@ const LoginForm = () => {
                 />
             </div>
             <div className="flex flex-col gap-5">
-            <GetClearance />
+            <GetClearance/>
             <RegisterButton/>
             </div>
         </form>
