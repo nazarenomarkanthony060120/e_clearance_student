@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import SubmitButton from '../button/submit/submit';
 import ReturnToLogin from '../button/backtologin/backtologin';
+import { createUserWithEmailAndPassword } from 'firebase/auth'
 
 // Define the types for departments and courses
 type Department = 'CITE' | 'COCJE' | 'COTE' | 'COHM';
