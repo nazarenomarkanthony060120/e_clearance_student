@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Sidebar from '@/components/student_sidebar/student_sidebar';
 import ViewClearance from '@/components/student_clearance/student_clearance/student_clearance';
-import ApprovedClearance from '@/components/student_clearance/approved_clearance/approved_clearance';
+import ApprovedClearance from '@/components/student_clearance/clearance_status/clearance_status';
 import Header from '@/components/header/header';
 
 
@@ -14,7 +14,7 @@ const Home = () => {
     switch (currentSection) {
       case 'View Clearance':
         return <ViewClearance/>;
-      case 'Approved Clearance':
+      case 'Clearance Status':
         return <ApprovedClearance/>;
       default:
         return <ViewClearance />;

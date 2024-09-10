@@ -1,31 +1,30 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'; 
 import { HiMenuAlt3 } from 'react-icons/hi';
-import { MdEditDocument, MdOutlineDoneAll, MdLogout } from 'react-icons/md';
+import { MdEditDocument, MdPageview, MdLogout } from 'react-icons/md';
 import Image from 'next/image';
 import schoolLogo from '@/assets/bcclogo.png';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, firestore } from '@/lib/firebase';
 
 const StudentSidebar = ({ setCurrentSection }: any) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [studentID, setStudentID] = useState<string | null>(null);
 
   const sidebars = [
     { name: 'View Clearance', section: 'View Clearance', icon: MdEditDocument },
-    { name: 'Approved Clearance', section: 'Approved Clearance', icon: MdOutlineDoneAll },
+    { name: 'Clearance Status', section: 'Clearance Status', icon: MdPageview },
     { name: 'Logout', section: 'Logout', icon: MdLogout },
   ];
 
   const handleLogout = async () => {
     setLoading(true);
-    
-    // Simulate a delay or perform any logout actions
-    setTimeout(() => {
-      // Clear any authentication or session data here, if applicable
-      // e.g., localStorage.removeItem('token');
+    localStorage.removeItem('studentID'); // Clear localStorage on logout
 
-      // Redirect to the login page
+    setTimeout(() => {
       router.push('/login');
     }, 3000); // 3-second delay for demonstration
   };
@@ -33,6 +32,45 @@ const StudentSidebar = ({ setCurrentSection }: any) => {
   // Set the initial state of 'open' to true to make the sidebar open by default
   const [open, setOpen] = useState(true);
 
+  useEffect(() => {
+    const storedStudentID = localStorage.getItem('studentID');
+    if (storedStudentID) {
+      console.log('Found studentID in localStorage:', storedStudentID);
+      setStudentID(storedStudentID);
+    } else {
+      const fetchStudentID = async () => {
+        const user = auth.currentUser;
+        console.log('Current user:', user);
+        if (user) {
+          try {
+            const userDocRef = doc(firestore, 'users', user.uid);
+            console.log('Fetching document from path:', userDocRef.path);
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              console.log('Document data:', userDoc.data());
+              const fetchedStudentID = userDoc.data().studentID;
+              if (fetchedStudentID) {
+                console.log('Fetched studentID:', fetchedStudentID);
+                setStudentID(fetchedStudentID);
+                localStorage.setItem('studentID', fetchedStudentID);
+              } else {
+                console.error('studentID field does not exist in document');
+              }
+            } else {
+              console.error('No such document!');
+            }
+          } catch (error) {
+            console.error('Error fetching document:', error);
+          }
+        } else {
+          console.error('No user is logged in');
+        }
+      };
+  
+      fetchStudentID();
+    }
+  }, []);
+  
   return (
     <div className={`flex ${open ? 'w-72' : 'w-16'} bg-gray-900 text-white duration-500`}>
       <div className={`fixed top-0 left-0 bottom-0 bg-gray-900 text-white ${open ? 'w-72' : 'w-16'} duration-500 px-4 overflow-hidden`}>
@@ -45,8 +83,8 @@ const StudentSidebar = ({ setCurrentSection }: any) => {
         </div>
         <div className="border-t-2 border-gray-500 w-full"></div>
         <div className={`flex justify-between p-3 ${open ? '' : 'hidden'}`}>
-          Example Name
-          <span>Student</span>
+          {studentID ? studentID : 'Example ID'}
+          <span>Student ID</span>
         </div>
         <div className="border-t-2 border-gray-500 w-full"></div>
         <div className='mt-4 flex flex-col gap-4 relative'>

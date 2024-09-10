@@ -1,9 +1,14 @@
 'use client'
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { FormEvent, useState } from "react";
 import SubmitButton from '../button/submit/submit';
 import ReturnToLogin from '../button/backtologin/backtologin';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { toast } from "react-toastify";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { auth, firestore } from "@/lib/firebase";
+import { FirebaseError } from "firebase/app";
 
 // Define the types for departments and courses
 type Department = 'CITE' | 'COCJE' | 'COTE' | 'COHM';
@@ -45,6 +50,7 @@ const CreateStudentAccount = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, SetConfirmPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isSubmit, setIsSubmit] = useState(false);
 
   const router = useRouter();
 
@@ -65,19 +71,64 @@ const CreateStudentAccount = () => {
     setStudentID(formattedValue);
   };
 
-  const handleRegisterSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!studentID || !fullName || !email || !password || !confirmPassword) {
-      setErrorMsg('All fields are required.');
-      return;
-    }
+  const handleRegisterSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (isSubmit) return;
+
+    // Check if passwords match
     if (password !== confirmPassword) {
-      setErrorMsg('Passwords do not match.');
-      return;
+        setErrorMsg("Passwords do not match");
+        setIsSubmit(false);
+        return;
     }
-    router.push('/login');
-    setErrorMsg(null);
-    console.log('Submitting:', { studentID, fullName, email, password, confirmPassword });
+
+    setIsSubmit(true);
+    setErrorMsg(null);  // Clear any previous error messages
+
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        await setDoc(doc(firestore, 'users', user.uid), {
+            studentID,
+            fullName,
+            email,
+            password,
+            selectedDepartment,
+            selectedCourse,
+            selectedLevel,
+            selectedSemester,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        });
+
+        toast.success("Account Created!", {
+            theme: 'colored',
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        router.push('/login');
+    } catch (error: unknown) {
+        if (error instanceof FirebaseError) {
+            // Check for specific error code
+            if (error.code === 'auth/email-already-in-use') {
+                setErrorMsg("Email already exists");
+            } else {
+                setErrorMsg("Error registering user: " + error.message);
+            }
+        } else if (error instanceof Error) {
+            setErrorMsg("Error registering user: " + error.message);
+        } else {
+            setErrorMsg("An unknown error occurred");
+        }
+
+        toast.error(errorMsg, {
+            theme: 'colored',
+        });
+    } finally {
+        setIsSubmit(false);
+    }
   };
 
   return (
@@ -125,30 +176,49 @@ const CreateStudentAccount = () => {
             required
           />
 
-          <select className="w-full p-2 shadow-lg border text-center custom-select" value={selectedDepartment} onChange={handleDepartmentChange} required>
-          <option value="" disabled selected>Select Department</option>
+          <select 
+            className="w-full p-2 shadow-lg border text-center custom-select" 
+            value={selectedDepartment} 
+            onChange={handleDepartmentChange} 
+            required
+          >
+            <option value="" disabled>Select Department</option>
             {departments.map((department, index) => (
               <option key={index} value={department}>{department}</option>
             ))}
           </select>
-          <select className="w-full p-2 shadow-lg border text-center custom-select" value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)} required>
-            <option value="" disabled selected hidden>Select Course</option>
-              {filteredCourses.map((course, index) => (
+          <select 
+            className="w-full p-2 shadow-lg border text-center custom-select" 
+            value={selectedCourse} 
+            onChange={(e) => setSelectedCourse(e.target.value)} 
+            required
+          >
+            <option value="" disabled hidden>Select Course</option>
+            {filteredCourses.map((course, index) => (
               <option key={index} value={course}>{course}</option>
             ))}
           </select>
-          <select className="w-full p-2 shadow-lg border text-center custom-select" value={selectedLevel} onChange={(e) => setSelectedLevel(e.target.value)} required>
-            <option className="text-gray-300" value="" disabled selected>Year</option>
-              {level.map((level, index) => (
-                <option key={index} value={level}>{level}</option>
-              ))}
+          <select 
+            className="w-full p-2 shadow-lg border text-center custom-select" 
+            value={selectedLevel} 
+            onChange={(e) => setSelectedLevel(e.target.value)} 
+            required
+          >
+            <option value="" disabled>Year</option>
+            {level.map((level, index) => (
+              <option key={index} value={level}>{level}</option>
+            ))}
           </select>
-
-          <select className="w-full p-2 shadow-lg border text-center custom-select" value={selectedSemester} onChange={(e) => setSelectedSemester(e.target.value)} required>
-            <option className="text-gray-300" value="" disabled selected>Semester</option>
-              {semester.map((semester, index) => (
-                <option key={index} value={semester}>{semester}</option>
-              ))}
+          <select 
+            className="w-full p-2 shadow-lg border text-center custom-select" 
+            value={selectedSemester} 
+            onChange={(e) => setSelectedSemester(e.target.value)} 
+            required
+          >
+            <option value="" disabled>Semester</option>
+            {semester.map((semester, index) => (
+              <option key={index} value={semester}>{semester}</option>
+            ))}
           </select>
       </div>
       <div className="flex flex-col gap-1">
@@ -156,7 +226,7 @@ const CreateStudentAccount = () => {
             <ReturnToLogin/>
       </div>
     </form>
-  )
-}
+  );
+};
 
-export default CreateStudentAccount
+export default CreateStudentAccount;
