@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { auth, firestore } from '@/lib/firebase'; // Assuming auth is also exported from firebase config
 
 type ClearanceStatus = 'Approved' | 'Disapproved' | 'None' | 'Pending';
@@ -18,6 +18,7 @@ interface StudentSubmission {
   studentID: string;
   gcashNumber: string;
   receiptURL: string;
+  status: ClearanceStatus;
 }
 
 function ClearanceStatusView() {
@@ -72,6 +73,7 @@ function ClearanceStatusView() {
 
           clearancesSnapshot.forEach((doc) => {
             const data = doc.data();
+            console.log(doc)
             clearancesWithStatus.push({
               docId: doc.id,
               role: data.role,
@@ -106,6 +108,7 @@ function ClearanceStatusView() {
           studentID: studentData.studentID,
           gcashNumber: studentData.gcashNumber,
           receiptURL: studentData.receiptURL,
+          status: studentData.status,
         });
       } else {
         setStudentDetails(null);
@@ -118,6 +121,40 @@ function ClearanceStatusView() {
     setShowModal(true);
   };
 
+  const resubmit = async (clearanceId: string) => {
+    console.log(clearanceId);
+    try {
+      if (!clearanceId) {
+        throw new Error('Clearance ID is empty');
+      }
+  
+      const submissionsQuery = query(
+        collection(firestore, 'studentSubmissions'),
+        where('clearanceId', '==', clearanceId)
+      );
+  
+      const submissionsSnapshot = await getDocs(submissionsQuery);
+  
+      if (submissionsSnapshot.empty) {
+        throw new Error(`No document found with clearanceId ${clearanceId}`);
+      }
+  
+      const docToUpdate = submissionsSnapshot.docs[0]; 
+      const submissionDocId = docToUpdate.id; 
+  
+      const submissionDocRef = doc(firestore, 'studentSubmissions', submissionDocId);
+      await updateDoc(submissionDocRef, {
+        status: 'Pending',
+      });
+  
+      setStudentDetails((prev) => prev ? { ...prev, status: 'Pending' } : null);
+      setShowModal(false);
+      console.log('Status updated to Pending.');
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+  
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-100 text-gray-800">
       <section className="container mx-auto px-4 mt-10">
@@ -125,6 +162,7 @@ function ClearanceStatusView() {
           {fetchClearances
             .filter(clearance => clearance.status !== clearanceStatus.noneStatus)
             .map((clearance) => (
+              
               <div key={clearance.docId} className="relative bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
                 <div className="p-6 border-b border-gray-200">
                   <h2 className="text-xl font-semibold text-gray-800">Status:</h2>
@@ -181,8 +219,12 @@ function ClearanceStatusView() {
             ) : (
               <p>No details available</p>
             )}
-            <div className="text-center">
+            <div className="gap-3 flex items-center justify-center">
               <button className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition duration-300 mt-7 w-32" onClick={() => setShowModal(false)}>Close</button>
+              {
+              studentDetails?.status && studentDetails.status === 'Disapproved' &&
+                <button className="bg-emerald-400 text-white px-4 py-2 rounded hover:bg-emerald-700 transition duration-300 mt-7 w-32" onClick={() => resubmit(selectedClearance?.docId || '')}>Re-Submit</button>
+            }
             </div>
           </div>
         </div>
