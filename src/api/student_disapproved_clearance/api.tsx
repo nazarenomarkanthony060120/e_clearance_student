@@ -113,7 +113,7 @@ export const fetchDisapprovedClearancesData = async (clearanceId: string): Promi
 export const updateClearance = async (
   clearanceId: string,
   updatedData: Partial<ClearanceData>,
-  receipt?: File // Use the actual File object if provided
+  receipt?: File 
 ) => {
   const submissionsQuery = query(
     collection(firestore, 'studentSubmissions'),
@@ -130,8 +130,8 @@ export const updateClearance = async (
   const docRef = doc(firestore, 'studentSubmissions', docToUpdate.id);
 
   if (receipt) {
-    const receiptURL = await uploadReceipt(receipt); // Pass the File, not receiptURL
-    updatedData.receiptURL = receiptURL; // Save the receipt URL in updatedData
+    const receiptURL = await uploadReceipt(receipt); 
+    updatedData.receiptURL = receiptURL;
   }
 
   updatedData.status = 'Pending';
@@ -141,7 +141,7 @@ export const updateClearance = async (
   }
 
   try {
-    await updateDoc(docRef, updatedData); // Update the Firestore document with the new data
+    await updateDoc(docRef, updatedData); 
     console.log('Document updated successfully');
     return true;
   } catch (error) {
@@ -151,7 +151,7 @@ export const updateClearance = async (
 };
 
 const uploadReceipt = async (receipt: File): Promise<string> => {
-  const storageRef = ref(storage, `receipts/${receipt.name}`); // Reference for Firebase Storage
-  await uploadBytes(storageRef, receipt); // Upload the file to Firebase Storage
-  return getDownloadURL(storageRef); // Get the download URL and return it
+  const storageRef = ref(storage, `receipts/${receipt.name}`); 
+  await uploadBytes(storageRef, receipt); 
+  return getDownloadURL(storageRef); 
 };
