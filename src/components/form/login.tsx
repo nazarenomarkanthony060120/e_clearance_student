@@ -48,7 +48,7 @@ const LoginForm = () => {
             </div>
             <div className="flex flex-col gap-5">
                 <button type="submit" disabled={loading} className={`bg-green-700 hover:bg-green-500 w-full rounded-md p-2 text-white ${loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-700'}`} >
-                    {loading ? 'Logging in...' : 'View Clerance'}
+                    {loading ? 'Logging in...' : 'Login'}
                 </button>
                 {/* <GetClearance /> */}
                 <RegisterButton />

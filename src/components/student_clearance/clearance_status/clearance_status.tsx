@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { auth, firestore } from '@/lib/firebase'; // Assuming auth is also exported from firebase config
 
-type ClearanceStatus = 'Approved' | 'Disapproved' | 'None' | 'Pending';
+type ClearanceStatus = 'Approved' | 'Disapproved' | 'None' | 'Pending' | 'Re-submit';
 
 interface CreatedClearance {
   docId: string;
@@ -32,6 +32,7 @@ function ClearanceStatusView() {
     disapprovedStatus: 'Disapproved' as ClearanceStatus,
     noneStatus: 'None' as ClearanceStatus,
     pendingStatus: 'Pending' as ClearanceStatus,
+    reSubmit: 'Re-submit' as ClearanceStatus
   };
 
   const getStatusColor = (status: ClearanceStatus) => {
@@ -144,7 +145,7 @@ function ClearanceStatusView() {
   
       const submissionDocRef = doc(firestore, 'studentSubmissions', submissionDocId);
       await updateDoc(submissionDocRef, {
-        status: 'Pending',
+        status: 'Re-submit',
       });
   
       setStudentDetails((prev) => prev ? { ...prev, status: 'Pending' } : null);
@@ -160,7 +161,7 @@ function ClearanceStatusView() {
       <section className="container mx-auto px-4 mt-10">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 ml-8">
           {fetchClearances
-            .filter(clearance => clearance.status !== clearanceStatus.noneStatus)
+            .filter(clearance => clearance.status !== clearanceStatus.noneStatus && clearance.status !== clearanceStatus.reSubmit && clearance.status !== clearanceStatus.disapprovedStatus)
             .map((clearance) => (
               
               <div key={clearance.docId} className="relative bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">

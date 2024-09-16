@@ -17,6 +17,7 @@ const StudentSidebar = ({ setCurrentSection }: any) => {
   const sidebars = [
     { name: 'View Clearance', section: 'View Clearance', icon: MdEditDocument },
     { name: 'Clearance Status', section: 'Clearance Status', icon: MdPageview },
+    { name: 'Disapproved Clearance', section: 'Disapproved Clearance', icon: MdPageview },
     { name: 'Logout', section: 'Logout', icon: MdLogout },
   ];
 
