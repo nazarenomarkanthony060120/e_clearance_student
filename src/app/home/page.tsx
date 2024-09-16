@@ -4,6 +4,7 @@ import Sidebar from '@/components/student_sidebar/student_sidebar';
 import ViewClearance from '@/components/student_clearance/student_clearance/student_clearance';
 import ApprovedClearance from '@/components/student_clearance/clearance_status/clearance_status';
 import Header from '@/components/header/header';
+import DisapprovedClearance from '@/features/students/disapprovedClearance/DisapprovedClearance';
 
 
 
@@ -16,6 +17,8 @@ const Home = () => {
         return <ViewClearance/>;
       case 'Clearance Status':
         return <ApprovedClearance/>;
+      case 'Disapproved Clearance':
+        return <DisapprovedClearance />
       default:
         return <ViewClearance />;
     }
