@@ -195,6 +195,7 @@ function StudentClearanceView() {
         clearanceId: selectedClearance.docId, // Use the docId to link the submission
         userId: uid, // Store the current user's UID
         creatorId: clearanceData?.userId, // Fetch and store the creatorId from the clearance document
+        signature: clearanceData?.signature
       });
   
       // Update the specific clearance document to mark it as submitted
