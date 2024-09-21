@@ -11,6 +11,7 @@ interface CreatedClearance {
   amount: number;
   purpose: string;
   status: ClearanceStatus;
+  signature: string
 }
 
 interface StudentSubmission {
@@ -19,6 +20,7 @@ interface StudentSubmission {
   gcashNumber: string;
   receiptURL: string;
   status: ClearanceStatus;
+  signature: string
 }
 
 function ClearanceStatusView() {
@@ -81,6 +83,7 @@ function ClearanceStatusView() {
               fullName: data.roleName,
               amount: data.amount,
               purpose: data.purpose,
+              signature: data.signature,
               status: statuses[doc.id] || clearanceStatus.noneStatus, // Get status or default to 'None'
             });
           });
@@ -110,6 +113,7 @@ function ClearanceStatusView() {
           gcashNumber: studentData.gcashNumber,
           receiptURL: studentData.receiptURL,
           status: studentData.status,
+          signature: studentData.signature
         });
       } else {
         setStudentDetails(null);
@@ -195,7 +199,7 @@ function ClearanceStatusView() {
             {studentDetails ? (
               <div className="space-y-2">
                 <div className="space-y-1">
-                  <label className="block text-gray-700">Student ID</label>
+                  <label className="block text-gray-700">Student ID </label>
                   <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={studentDetails.studentID} readOnly/>
                 </div>
 
@@ -213,6 +217,13 @@ function ClearanceStatusView() {
                   <div className="space-y-1">
                     <label className="block text-gray-700">Submitted Evidence</label>
                     <img className="w-full h-auto border border-gray-300 rounded" src={studentDetails.receiptURL} alt="Receipt" />
+                  </div>
+                )}
+
+                {studentDetails.status === 'Approved' && studentDetails.signature && ( 
+                  <div className="space-y-1">
+                    <label className="block text-gray-700">Signature</label>
+                    <img className="w-full h-auto border border-gray-300 rounded" src={studentDetails.signature} alt="Receipt" />
                   </div>
                 )}
                 
