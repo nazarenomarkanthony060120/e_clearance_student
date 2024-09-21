@@ -17,6 +17,7 @@ interface Clearance {
   status: ClearanceStatus;
   qrCodeURL?: string; // Add this field
   isSubmitted?: boolean; // Track if the clearance has been submitted
+  signature: string
 }
 
 function StudentClearanceView() {
@@ -73,7 +74,7 @@ function StudentClearanceView() {
       try {
         const querySnapshot = await getDocs(collection(firestore, 'clearances'));
         const fetchedClearances: Clearance[] = [];
-
+       
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           if (!data.isSubmitted) {  // Filter out submitted clearances
@@ -86,6 +87,7 @@ function StudentClearanceView() {
               status: 'None',
               qrCodeURL: data.qrCodeURL, // Fetch the QR code URL
               isSubmitted: data.isSubmitted,
+              signature: data.signature
             });
           }
         });
@@ -194,6 +196,7 @@ function StudentClearanceView() {
         status: 'Pending',
         clearanceId: selectedClearance.docId, // Use the docId to link the submission
         userId: uid, // Store the current user's UID
+        signature: selectedClearance.signature,
         creatorId: clearanceData?.userId, // Fetch and store the creatorId from the clearance document
       });
   
