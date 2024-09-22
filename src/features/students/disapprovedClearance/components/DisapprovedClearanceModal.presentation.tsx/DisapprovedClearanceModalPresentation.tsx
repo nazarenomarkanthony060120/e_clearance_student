@@ -1,10 +1,10 @@
-import { Clearance, ClearanceData, updateClearance } from "@/api/student_disapproved_clearance/api";
-import { useState } from "react";
-import { toast } from "react-toastify";
+import { Clearance, ClearanceData, updateClearance } from "@/api/student_disapproved_clearance/api"
+import { useState } from "react"
+import { toast } from "react-toastify"
 
 interface ModalProps {
-    clearanceData: ClearanceData;
-    onClose: () => void;
+    clearanceData: ClearanceData
+    onClose: () => void
     fetched: Boolean
 }
 
@@ -13,57 +13,59 @@ const sx = {
     padding: '0.5rem',    
     border: '1px solid #D1D5DB', 
     borderRadius: '0.25rem', 
-};
+}
 
 export const DisapprovedClearanceModalPresentation = ({ clearanceData, onClose, fetched }: ModalProps) => {
-    const { clearanceId, creatorId, disapproveReason, gcashNumber, receiptURL, status, studentID, studentName, userId } = clearanceData;
+    const { clearanceId, creatorId, disapproveReason, gcashNumber, receiptURL, amount, status, studentID, studentName, userId } = clearanceData
 
-    const [editableStudentID, setEditableStudentID] = useState(studentID);
-    const [editableStudentName, setEditableStudentName] = useState(studentName);
-    const [editableGCashNumber, setEditableGCashNumber] = useState(gcashNumber);
-    const [editableDisapproveReason, setEditableDisapproveReason] = useState(disapproveReason);
-    const [receiptPreview, setReceiptPreview] = useState<string | null>(receiptURL);
-    const [receipt, setReceipt] = useState<File | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false); 
+    const [editableStudentID, setEditableStudentID] = useState(studentID)
+    const [editableStudentName, setEditableStudentName] = useState(studentName)
+    const [editableGCashNumber, setEditableGCashNumber] = useState(gcashNumber)
+    const [editableAmount, setEditableAmount] =  useState(amount)
+    const [editableDisapproveReason, setEditableDisapproveReason] = useState(disapproveReason)
+    const [receiptPreview, setReceiptPreview] = useState<string | null>(receiptURL)
+    const [receipt, setReceipt] = useState<File | null>(null)
+    const [isSubmitting, setIsSubmitting] = useState(false) 
 
     const handleReceiptChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0]) {
-            const file = event.target.files[0];
-            setReceipt(file);
-            setReceiptPreview(URL.createObjectURL(file));
+            const file = event.target.files[0]
+            setReceipt(file)
+            setReceiptPreview(URL.createObjectURL(file))
         }
-    };
+    }
 
     const handleCloseModal = () => {
-        onClose(); 
-    };
+        onClose() 
+    }
 
     const handleSubmit = async () => {
-        setIsSubmitting(true);
+        setIsSubmitting(true)
         try {
           const updatedData: Partial<ClearanceData> = {
             studentID: editableStudentID,
             studentName: editableStudentName,
             gcashNumber: editableGCashNumber,
-          };
+            amount: editableAmount,
+          }
       
-          await updateClearance(clearanceId, updatedData, receipt || undefined); 
+          await updateClearance(clearanceId, updatedData, receipt || undefined) 
       
           toast.success('Clearance data updated successfully', {
             theme: 'colored',
-          });
+          })
       
-          onClose(); 
+          onClose() 
         } catch (error) {
           toast.error('Error updating clearance data', {
             theme: 'colored',
-          });
-          console.error('Error updating clearance data:', error);
+          })
+          console.error('Error updating clearance data:', error)
         } finally {
-          setIsSubmitting(false);
+          setIsSubmitting(false)
           fetched = !fetched
         }
-    };
+    }
 
     return (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
@@ -87,6 +89,16 @@ export const DisapprovedClearanceModalPresentation = ({ clearanceData, onClose, 
                             type="text"
                             value={editableStudentName}
                             onChange={(e) => setEditableStudentName(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="block text-gray-700">Amount</label>
+                        <input
+                            style={sx}
+                            type="number"
+                            value={`₱ ${editableAmount.toLocaleString()}`}
+                            onChange={(e) => setEditableAmount(parseInt(e.target.value))}
                         />
                     </div>
 
@@ -134,5 +146,5 @@ export const DisapprovedClearanceModalPresentation = ({ clearanceData, onClose, 
                 </div>
             </div>
         </div>
-    );
+    )
 }

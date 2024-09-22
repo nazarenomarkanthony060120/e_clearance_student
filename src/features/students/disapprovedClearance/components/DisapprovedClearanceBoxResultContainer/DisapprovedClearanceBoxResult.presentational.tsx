@@ -1,11 +1,11 @@
 import { Props } from "@/api/student_disapproved_clearance/api";
 import { DisapprovedClearanceDialogInfoPresentational } from "../DisapprovedClearanceDialogInfo/DisapprovedClearanceDialogInfo.presentational";
   
-const DisapprovedClearanceBoxResultPresentation = ({ data, fetched }: Props) => {
+const DisapprovedClearanceBoxResultPresentation = ({ data, fetched, setClearanceFetch }: Props) => {
     return (
         <>
             {
-                data.map((clearance, index) => (
+                setClearanceFetch ? data.map((clearance, index) => (
                     clearance.status == 'Disapproved' && 
                     <div key={index} className="relative bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
                         <div className="p-6 border-b border-gray-200">
@@ -17,11 +17,14 @@ const DisapprovedClearanceBoxResultPresentation = ({ data, fetched }: Props) => 
                                     <span className="font-semibold text-gray-700">Name:</span>
                                     <span className="ml-2 text-gray-600">{clearance.fullName}</span>
                                 </div>
-                                <DisapprovedClearanceDialogInfoPresentational docId={clearance.docId} fetched={fetched}/>
+                                <DisapprovedClearanceDialogInfoPresentational docId={clearance.docId} fetched={fetched} setClearanceFetch={setClearanceFetch} />
                             </div>
                         </div>
                     </div>
-                ))
+                )) : 
+                <div className='text-center text-red-500 font-bold'>
+                    <p>No clearance to has been disapproved</p>
+                </div>
             }
         </>
             
