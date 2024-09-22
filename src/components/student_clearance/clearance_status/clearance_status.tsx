@@ -163,32 +163,39 @@ function ClearanceStatusView() {
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-100 text-gray-800">
       <section className="container mx-auto px-4 mt-10">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 ml-8">
-          {fetchClearances
-            .filter(clearance => clearance.status !== clearanceStatus.noneStatus && clearance.status !== clearanceStatus.reSubmit && clearance.status !== clearanceStatus.disapprovedStatus)
-            .map((clearance) => (
-              
-              <div key={clearance.docId} className="relative bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-                <div className="p-6 border-b border-gray-200">
-                  <h2 className="text-xl font-semibold text-gray-800">Status:</h2>
-                  <p className={`text-lg font-medium ${getStatusColor(clearance.status)}`}>
-                    {clearance.status}
-                  </p>
-                </div>
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center">
-                      <span className="font-semibold text-gray-700">{clearance.role}:</span>
-                      <span className="ml-2 text-gray-600">{clearance.fullName}</span>
+        {
+          fetchClearances.length > 0 ?
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 ml-8">
+              {fetchClearances
+                .filter(clearance => clearance.status !== clearanceStatus.noneStatus && clearance.status !== clearanceStatus.reSubmit && clearance.status !== clearanceStatus.disapprovedStatus)
+                .map((clearance) => (
+                  
+                  <div key={clearance.docId} className="relative bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+                    <div className="p-6 border-b border-gray-200">
+                      <h2 className="text-xl font-semibold text-gray-800">Status:</h2>
+                      <p className={`text-lg font-medium ${getStatusColor(clearance.status)}`}>
+                        {clearance.status}
+                      </p>
                     </div>
-                    <button className="text-blue-600 hover:underline font-semibold" onClick={() => handleViewClick(clearance)}>
-                      View
-                    </button>
+                    <div className="p-6">
+                      <div className="flex justify-between items-center mb-4">
+                        <div className="flex items-center">
+                          <span className="font-semibold text-gray-700">{clearance.role}:</span>
+                          <span className="ml-2 text-gray-600">{clearance.fullName}</span>
+                        </div>
+                        <button className="text-blue-600 hover:underline font-semibold" onClick={() => handleViewClick(clearance)}>
+                          View
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
-        </div>
+                ))}
+            </div> :
+            <div className='text-center text-red-500 font-bold'>
+                <p>No clearance to has been submitted yet</p>
+            </div>
+        }
+        
       </section>
 
       {/* Modal for displaying student details */}
