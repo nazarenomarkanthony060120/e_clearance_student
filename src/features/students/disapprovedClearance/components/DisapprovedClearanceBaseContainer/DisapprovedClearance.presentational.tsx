@@ -15,7 +15,7 @@ const DisapprovedClearancePresentational: React.FC<Props> = ({ data, fetched }) 
         {/* {
           clearanceFetch ? */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 ml-8">
-              {data && <DisapprovedClearanceBoxResultPresentation data={data} fetched={fetched} setClearanceFetch={setClearanceFetch} />}
+              {data && <DisapprovedClearanceBoxResultPresentation data={data} fetched={fetched} />}
             </div> :
             {/* <div className='text-center text-red-500 font-bold'>
               <p>No clearance to has been disapproved</p>
