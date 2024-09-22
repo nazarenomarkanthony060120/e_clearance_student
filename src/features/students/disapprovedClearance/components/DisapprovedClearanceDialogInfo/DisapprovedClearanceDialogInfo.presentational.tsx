@@ -2,7 +2,7 @@ import { Clearance, ClearanceData, fetchDisapprovedClearancesData } from "@/api/
 import { useState, useEffect } from "react"
 import { DisapprovedClearanceModalPresentation } from "../DisapprovedClearanceModal.presentation.tsx/DisapprovedClearanceModalPresentation"
 
-export const DisapprovedClearanceDialogInfoPresentational = ({ docId, fetched, setClearanceFetch }: Clearance) => {
+export const DisapprovedClearanceDialogInfoPresentational = ({ docId, fetched }: Clearance) => {
     const [isModalVisible, setModalVisible] = useState(false)
     const [clearanceData, setClearanceData] = useState<ClearanceData | null>(null)
 
@@ -12,11 +12,9 @@ export const DisapprovedClearanceDialogInfoPresentational = ({ docId, fetched, s
             if (clearance) {
                 setClearanceData(clearance)
                 setModalVisible(true)
-                setClearanceFetch(true)
             }
         } catch (error) {
             console.error('Error fetching disapproved clearance data:', error)
-            setClearanceFetch(false)  
         }
     }
 

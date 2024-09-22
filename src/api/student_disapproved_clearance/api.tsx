@@ -13,13 +13,13 @@ export enum ClearanceStatus {
 export interface Clearance {
   docId: string
   fetched: Boolean
-  setClearanceFetch: Dispatch<SetStateAction<boolean>>
+  // setClearanceFetch: Dispatch<SetStateAction<boolean>>
 }
 
 export interface Props {
   data: CreatedClearance[]
   fetched: Boolean
-  setClearanceFetch: Dispatch<SetStateAction<boolean>>
+  // setClearanceFetch: Dispatch<SetStateAction<boolean>>
 }
 
 export interface CreatedClearance {
