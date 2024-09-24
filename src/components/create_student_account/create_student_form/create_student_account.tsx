@@ -6,7 +6,7 @@ import SubmitButton from '../button/submit/submit';
 import ReturnToLogin from '../button/backtologin/backtologin';
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { toast } from "react-toastify";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, serverTimestamp, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { auth, firestore } from "@/lib/firebase";
 import { FirebaseError } from "firebase/app";
 
@@ -71,6 +71,24 @@ const CreateStudentAccount = () => {
     setStudentID(formattedValue);
   };
 
+    // Add a helper function to validate full name input
+  const handleFullNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    // Allow only letters and spaces
+    const validName = input.replace(/[^a-zA-Z\s]/g, ''); 
+    setFullName(capitalizeFullName(validName));
+  };
+
+  <input 
+    type="text" 
+    className="w-full p-2 shadow-lg border text-center" 
+    placeholder="Full Name" 
+    value={fullName}
+    onChange={handleFullNameChange}
+    required
+  />
+
+
   const handleRegisterSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -87,8 +105,18 @@ const CreateStudentAccount = () => {
     setErrorMsg(null);  // Clear any previous error messages
 
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+      // Check if the studentID already exists
+      const studentQuery = query(collection(firestore, 'users'), where('studentID', '==', studentID));
+      const studentSnapshot = await getDocs(studentQuery);
+
+      if (!studentSnapshot.empty) {
+        setErrorMsg("Student ID invalid. Please enter your correct ID");
+        setIsSubmit(false);
+        return;
+      }
+
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
         await setDoc(doc(firestore, 'users', user.uid), {
             studentID,
@@ -113,7 +141,7 @@ const CreateStudentAccount = () => {
         if (error instanceof FirebaseError) {
             // Check for specific error code
             if (error.code === 'auth/email-already-in-use') {
-                setErrorMsg("Email already exists");
+                setErrorMsg("Email Already Exist");
             } else {
                 setErrorMsg("Error registering user: " + error.message);
             }
@@ -143,12 +171,12 @@ const CreateStudentAccount = () => {
             onChange={handleStudentIDChange}
             required
           />
-          <input 
-            type="name" 
+         <input 
+            type="text" 
             className="w-full p-2 shadow-lg border text-center" 
             placeholder="Full Name" 
             value={fullName}
-            onChange={(e) => setFullName(capitalizeFullName(e.target.value))}
+            onChange={handleFullNameChange}
             required
           />
           <input 
@@ -222,8 +250,8 @@ const CreateStudentAccount = () => {
           </select>
       </div>
       <div className="flex flex-col gap-1">
-            <SubmitButton />
-            <ReturnToLogin/>
+        <SubmitButton loading={isSubmit} />
+        <ReturnToLogin />
       </div>
     </form>
   );

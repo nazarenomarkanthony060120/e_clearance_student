@@ -1,9 +1,20 @@
-'use client'
+import React from 'react';
 
-const SubmitButton = () => {
-  return (
-      <button className="bg-green-700 hover:bg-green-500 w-full rounded-md p-2 text-white">Create Account</button>
-  )
+interface SubmitButtonProps {
+  loading: boolean;
 }
 
-export default SubmitButton
+const SubmitButton: React.FC<SubmitButtonProps> = ({ loading }) => {
+  return (
+    <button
+      type="submit"
+      className="bg-green-700 hover:bg-green-500 w-full rounded-md p-2 text-white"
+      
+      disabled={loading}
+    >
+      {loading ? 'Creating...' : 'Create Account'}
+    </button>
+  );
+};
+
+export default SubmitButton;
