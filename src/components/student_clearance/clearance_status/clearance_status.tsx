@@ -1,7 +1,7 @@
   'use client';
 
   import React, { useState } from 'react';
-  import { collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+  import { collection, getDocs, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
   import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
   import { firestore, storage } from '@/lib/firebase';
   import { getAuth } from 'firebase/auth';
@@ -10,7 +10,6 @@
 
   interface Clearance {
     id: string;
-    status: ClearanceStatus;
     teacherName: string;
     teacherDepartment: string;
     selectedDepartment: string;
@@ -19,6 +18,7 @@
     scheduleDate: string;
     requirements: string[];
     teacherUID: string;
+    ClearanceUID: string;
   }
 
   function StudentClearanceView() {
@@ -36,12 +36,9 @@
     const [isLoading, setIsLoading] = useState(false);
     const [studentName, setStudentName] = useState<string>('');
     const [studentID, setStudentID] = useState<string>('');
-    const [studentSelectedDepartment, setStudentSelectedDepartment] = useState<string>('');
-
 
     const [studentNameInput, setStudentNameInput] = useState<string>('');
     const [studentIDInput, setStudentIDInput] = useState<string>('');
-
 
     const [uploadedFiles, setUploadedFiles] = useState<{ [key: number]: File[] }>({});
     const [filePreviews, setFilePreviews] = useState<{ [key: number]: string[] }>({});
@@ -233,8 +230,9 @@
           console.log('Requirement files before submission:', requirementFiles);
   
           const teacherUID = selectedClearance?.teacherUID;
+          const ClearanceUID  = selectedClearance?.ClearanceUID;
   
-          await addDoc(collection(firestore, 'studentSubmissions'), {
+          const submissionsDocs = await addDoc(collection(firestore, 'studentSubmissions'), {
               studentName,
               studentID,
               userDepartment,
@@ -243,9 +241,12 @@
               status: 'Pending',
               studentUID: uid,
               teacherUID,
+              ClearanceUID,
               submittedAt: serverTimestamp(),
               requirementFiles,
           });
+
+          await setDoc(submissionsDocs, { submissionsUID: submissionsDocs.id }, { merge: true });
   
           console.log('Uploaded files and requirements submitted:', requirementFiles);
           closeModal();
@@ -255,17 +256,16 @@
       } finally {
           setIsLoading(false);
       }
-  };
+    };
   
-  const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
       const files = Array.from(e.target.files || []);
       setUploadedFiles(prevState => ({ ...prevState, [index]: files }));
 
       // Generate file previews
       const filePreviews = files.map(file => URL.createObjectURL(file));
       setFilePreviews(prevState => ({ ...prevState, [index]: filePreviews }));
-  };
-
+    };
 
     return (
       <div className="min-h-screen flex flex-col items-center bg-gray-100 text-gray-800">
@@ -282,9 +282,9 @@
               {clearances.map((clearance) => (
                 <div key={clearance.id} className="relative bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
                   <div className="p-6 border-b border-gray-200">
-                    <span className="font-semibold text-gray-700 text-xl">Status:</span>
-                    <span className={`ml-2 ${getStatusColor(clearance.status)} text-xl`}>
-                      {clearance.status}
+                  <span className="font-semibold text-gray-700 text-xl">Status:</span>                    
+                    <span className={`ml-2 ${getStatusColor(clearanceStatus.noneStatus)} text-xl`}>
+                      {clearanceStatus.noneStatus}
                     </span>
                   </div>
                   <div className="p-6">
@@ -363,41 +363,39 @@
                   </div>
 
                   <div className="space-y-2">
-  <div className="text-left">
-    <label className="block text-red-400 italic mt-8">REQUIREMENTS:</label>
-    
-    {/* Null check for selectedClearance */}
-    {selectedClearance ? (
-      (!selectedClearance.requirements || selectedClearance.requirements.length === 0 || selectedClearance.requirements.includes("No")) ? (
-        <div className="text-center text-green-500 italic">
-          <p className="mt-5">No requirements are required.</p>
-        </div>
-      ) : (
-        selectedClearance.requirements.map((requirement, index) => (
-          <div key={index} className="flex flex-col mb-4">
-            <label className="font-semibold text-gray-600">{requirement || 'No'}:</label>
-            <input 
-              type="file" 
-              onChange={(e) => handleFilesChange(e, index)} 
-              className="mt-1 mb-2 border border-gray-300 rounded-md p-2"
-              multiple 
-              required
-            />
-            {filePreviews[index] && filePreviews[index].map((preview, idx) => (
-              <div key={idx} className="mt-4">
-                <img src={preview} alt={`Preview ${idx}`} className="max-w-full h-auto rounded" />
-              </div>
-            ))}
-          </div>
-        ))
-      )
-    ) : (
-      <div>Loading...</div> // Handle the null case, e.g., show a loading message
-    )}
-  </div>
-</div>
-
-
+                    <div className="text-left">
+                      <label className="block text-red-400 italic mt-8">REQUIREMENTS:</label>
+                      
+                      {/* Null check for selectedClearance */}
+                      {selectedClearance ? (
+                        (!selectedClearance.requirements || selectedClearance.requirements.length === 0 || selectedClearance.requirements.includes("No")) ? (
+                          <div className="text-center text-green-500 italic">
+                            <p className="mt-5">No requirements are required.</p>
+                          </div>
+                        ) : (
+                          selectedClearance.requirements.map((requirement, index) => (
+                            <div key={index} className="flex flex-col mb-4">
+                              <label className="font-semibold text-gray-600">{requirement || 'No'}:</label>
+                              <input 
+                                type="file" 
+                                onChange={(e) => handleFilesChange(e, index)} 
+                                className="mt-1 mb-2 border border-gray-300 rounded-md p-2"
+                                multiple 
+                                required
+                              />
+                              {filePreviews[index] && filePreviews[index].map((preview, idx) => (
+                                <div key={idx} className="mt-4">
+                                  <img src={preview} alt={`Preview ${idx}`} className="max-w-full h-auto rounded" />
+                                </div>
+                              ))}
+                            </div>
+                          ))
+                        )
+                      ) : (
+                        <div>Loading...</div> // Handle the null case, e.g., show a loading message
+                      )}
+                    </div>
+                  </div>
                   <div className="flex justify-center space-x-5">
                     <div className="flex justify-center space-x-5 mt-5">
                       <button type="submit" className={`bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300 w-32 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
