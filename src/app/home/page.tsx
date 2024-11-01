@@ -1,26 +1,27 @@
 'use client'
 import React, { useState } from 'react';
 import Sidebar from '@/components/student_sidebar/student_sidebar';
-import ViewClearance from '@/components/student_clearance/student_clearance/student_clearance';
-import ApprovedClearance from '@/components/student_clearance/clearance_status/clearance_status';
+import StudentClearanceView from '@/components/student_clearance/clearance_status/clearance_status';
+import PendingStatus from '@/components/student_clearance/pending_status/pending_status';
 import Header from '@/components/header/header';
-import DisapprovedClearance from '@/features/students/disapprovedClearance/DisapprovedClearance';
-
-
+import ApprovedStatus from '@/components/student_clearance/approved_status/approved_status';
+import DisapprovedStatus from '@/components/student_clearance/disapproved_status/disapproved_status';
 
 const Home = () => {
-  const [currentSection, setCurrentSection] = useState('View Clearance');
+  const [currentSection, setCurrentSection] = useState('Clearance Status');
 
   const renderSection = () => {
     switch (currentSection) {
-      case 'View Clearance':
-        return <ViewClearance/>;
       case 'Clearance Status':
-        return <ApprovedClearance/>;
-      case 'Disapproved Clearance':
-        return <DisapprovedClearance />
+        return <StudentClearanceView/>;
+      case 'Pending List':
+        return <PendingStatus />;
+      case 'Approved List':
+        return <ApprovedStatus />;
+      case 'Disapproved List':
+        return <DisapprovedStatus />;
       default:
-        return <ViewClearance />;
+        return <StudentClearanceView />;
     }
   };
 
