@@ -1,8 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import GetClearance from '../button/clearance/clearance'
-import RegisterButton from '../button/register/register'
 import { toast } from "react-toastify"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { auth } from "@/lib/firebase"
@@ -59,12 +57,21 @@ const LoginForm = () => {
                 <input type="email" className="w-full p-2 shadow-lg border text-center" placeholder="Input your Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 <input type="password" className="w-full p-2 shadow-lg border text-center" placeholder="Input your Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
-            <div className="flex flex-col gap-5">
-                <button type="submit" disabled={loading} className={`bg-green-700 hover:bg-green-500 w-full rounded-md p-2 text-white ${loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-700'}`} >
-                    {loading ? 'Logging in...' : 'Login'}
+            <div className="flex flex-col gap-3">
+                <button type="submit" className={`bg-green-700 hover:bg-green-500 w-full rounded-md p-2 text-white ${loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-700'}`}
+                    disabled={loading}>
+                    {loading ? (
+                        <span className="flex items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 100 8v4a8 8 0 01-8-8z" />
+                        </svg>
+                        Logging in...
+                        </span>
+                    ) : (
+                        'Login'
+                    )}
                 </button>
-                {/* <GetClearance /> */}
-                <RegisterButton />
             </div>
         </form>
     )
