@@ -28,6 +28,7 @@ interface StudentSubmissionData {
   purpose: string;
   SSGAdviserattachedReceiptURL: string;
   PTCATreasurerAttachedReceiptURL: string;
+  DeanAttachedReceiptURL: string;
 }
 
 function PendingStatus() {
@@ -77,7 +78,8 @@ function PendingStatus() {
           studentGcashNumber:data.studentGcashNumber,
           purpose:data.purpose,
           SSGAdviserattachedReceiptURL:data.SSGAdviserattachedReceiptURL,
-          PTCATreasurerAttachedReceiptURL:data.PTCATreasurerAttachedReceiptURL
+          PTCATreasurerAttachedReceiptURL:data.PTCATreasurerAttachedReceiptURL,
+          DeanAttachedReceiptURL:data.DeanAttachedReceiptURL
         });
       });
 
@@ -358,6 +360,68 @@ function PendingStatus() {
                 {selectedViewClearance?.PTCATreasurerAttachedReceiptURL && (
                   <img
                     src={selectedViewClearance.PTCATreasurerAttachedReceiptURL}
+                    alt="Student Reciept"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    style={{ maxHeight: '5000px', objectFit: 'contain' }}
+                  />
+                )}
+              </div>
+
+              <div className="flex justify-center space-x-5">
+                <div className="flex justify-center space-x-5 mt-5">
+                  <button onClick={closeModal} disabled= {loadingDisapprove} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray&t-700 transition duration-300 w-40 mt-5">
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* DEAN */}
+      {isModalOpen && selectedViewClearance?.teacherDepartment === 'DEAN' &&(
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg w-[25rem] max-h-[80%] overflow-y-auto relative">
+            <h2 className="text-2xl mb-6 text-center font-semibold mt-5">Clearance Submitted</h2>
+            <div className="space-y-2">
+              <div className="space-y-1">
+                <label className="block text-gray-700">Teacher Name:</label>
+                <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedViewClearance?.teacherName} readOnly/>
+              </div>
+              <div className="space-y-1">
+                <label className="block text-gray-700">Teacher Department:</label>
+                <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedViewClearance?.teacherDepartment} readOnly/>
+              </div>
+              <div className="space-y-1">
+                <label className="block text-gray-700">Teacher ID:</label>
+                <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedViewClearance?.teacherID} readOnly/>
+              </div>
+              <div className="space-y-1">
+                <label className="block text-gray-700">Submitted Time:</label>
+                <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={formatTimestamp(selectedViewClearance?.submittedAt)} readOnly/>
+              </div>
+              <div className="space-y-1">
+                <label className="block text-gray-700">Purpose</label>
+                <textarea 
+                  className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" 
+                  value={selectedViewClearance?.purpose} 
+                  readOnly 
+                  rows={4}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="block text-gray-700">Amount Submitted</label>
+                <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={`₱ ${selectedViewClearance?.studentAmountInput}`} readOnly/>
+              </div>
+              <div className="space-y-1">
+                <label className="block text-gray-700">Gcash Number</label>
+                <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedViewClearance?.studentGcashNumber} readOnly/>
+              </div>
+              <div className="space-y-1">
+                <label className="block text-gray-700">Reciept Submitted</label>
+                {selectedViewClearance?.DeanAttachedReceiptURL && (
+                  <img
+                    src={selectedViewClearance.DeanAttachedReceiptURL}
                     alt="Student Reciept"
                     className="w-full p-2 border border-gray-300 rounded"
                     style={{ maxHeight: '5000px', objectFit: 'contain' }}

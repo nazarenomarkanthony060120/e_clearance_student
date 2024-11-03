@@ -23,6 +23,7 @@ interface StudentSubmissionData {
   amount: string;
   SSGAdviserattachedReceiptURL: string;
   PTCATreasurerAttachedReceiptURL: string;
+  DeanAttachedReceiptURL: string;
   qrCodeURL: string
 }
 
@@ -42,6 +43,9 @@ function DisapprovedStatus() {
   const [studentAmountInput, setStudentAmountInput] = useState<string>('');
   const [ssgAdviserReciept, setSsgAdviserReciept] = useState<File | null>(null);
   const [ssgAdviserRecieptView, setSsgAdviserRecieptView] = useState<string | null>(null);
+
+  const [deanReciept, setDeanReciept] = useState<File | null>(null);
+  const [deanRecieptView, setDeanRecieptView] = useState<string | null>(null);
   const [rawAmount, setRawAmount] = useState('');
 
 
@@ -78,7 +82,8 @@ function DisapprovedStatus() {
           amount:data.amount,
           SSGAdviserattachedReceiptURL:data.SSGAdviserattachedReceiptURL,
           qrCodeURL:data.qrCodeURL,
-          PTCATreasurerAttachedReceiptURL:data.PTCATreasurerAttachedReceiptURL
+          PTCATreasurerAttachedReceiptURL:data.PTCATreasurerAttachedReceiptURL,
+          DeanAttachedReceiptURL:data.DeanAttachedReceiptURL
         });
       });
 
@@ -149,6 +154,8 @@ function DisapprovedStatus() {
     setUploadedFiles({});
     setSsgAdviserReciept(null);
     setSsgAdviserRecieptView('');
+    setDeanReciept(null);
+    setDeanRecieptView('');
     setStudentGcashNumber('');
     setStudentAmountInput('');
 
@@ -194,9 +201,14 @@ function DisapprovedStatus() {
             updatedUrls[+index] = urls;
         }
 
-        // Handle uploading the SSG Adviser receipt file
+        // Upload files conditionally for each department
         const adviserFile = uploadedFiles[0]?.[0]; // Assuming the adviser file is the first uploaded file
+        const ptcAdviserFile = uploadedFiles[0]?.[0];
+        const deanFile = uploadedFiles[0]?.[0];
+
         let ssgAdviserReceiptUrl = '';
+        let ptcaTreasurerReceiptUrl = '';
+        let deanReceiptUrl = '';
 
         if (adviserFile) {
             const adviserFilePath = `SSGADVISERSubmitlist/${uid}/${selectedViewClearance.teacherUID}/${adviserFile.name}`;
@@ -206,30 +218,44 @@ function DisapprovedStatus() {
             ssgAdviserReceiptUrl = await getDownloadURL(adviserStorageRef);
         }
 
-         // Handle uploading the PTCA Treasurer receipt file
-         const ptcAdviserFile = uploadedFiles[0]?.[0]; // Assuming the adviser file is the first uploaded file
-         let ptcaTreasurerReceiptUrl = '';
- 
-         if (ptcAdviserFile) {
-             const adviserFilePath = `PTCATREASURERSubmitlist/${uid}/${selectedViewClearance.teacherUID}/${ptcAdviserFile.name}`;
-             const adviserStorageRef = ref(storage, adviserFilePath);
- 
-             await uploadBytes(adviserStorageRef, ptcAdviserFile);
-             ptcaTreasurerReceiptUrl = await getDownloadURL(adviserStorageRef);
-         }
+        if (ptcAdviserFile) {
+            const adviserFilePath = `PTCATREASURERSubmitlist/${uid}/${selectedViewClearance.teacherUID}/${ptcAdviserFile.name}`;
+            const adviserStorageRef = ref(storage, adviserFilePath);
 
-        // Update Firestore with new URLs and change status to "Pending"
-        const docRef = doc(firestore, 'studentSubmissions', selectedViewClearance.submissionsUID);
-        await updateDoc(docRef, {
-            requirementFiles: selectedViewClearance.requirementFiles?.map((file, i) => ({
+            await uploadBytes(adviserStorageRef, ptcAdviserFile);
+            ptcaTreasurerReceiptUrl = await getDownloadURL(adviserStorageRef);
+        }
+
+        if (deanFile) {
+            const adviserFilePath = `DEANSubmitlist/${uid}/${selectedViewClearance.teacherUID}/${deanFile.name}`;
+            const adviserStorageRef = ref(storage, adviserFilePath);
+
+            await uploadBytes(adviserStorageRef, deanFile);
+            deanReceiptUrl = await getDownloadURL(adviserStorageRef);
+        }
+
+        // Initialize additionalFields based on department conditions
+        const additionalFields: any = {};
+
+        if (selectedViewClearance.teacherDepartment === 'DEAN' && deanReceiptUrl) {
+            additionalFields.DeanAttachedReceiptURL = deanReceiptUrl;
+        } else if (selectedViewClearance.teacherDepartment === 'PTCA TREASURER' && ptcaTreasurerReceiptUrl) {
+            additionalFields.PTCATreasurerAttachedReceiptURL = ptcaTreasurerReceiptUrl;
+        } else if (selectedViewClearance.teacherDepartment === 'SSG ADVISER' && ssgAdviserReceiptUrl) {
+            additionalFields.SSGAdviserattachedReceiptURL = ssgAdviserReceiptUrl;
+        } else {
+            additionalFields.requirementFiles = selectedViewClearance.requirementFiles?.map((file, i) => ({
                 ...file,
                 urls: updatedUrls[i] || file.urls,
-            })),
+            }));
+        }
+
+        // Update Firestore document with conditionally added fields
+        const docRef = doc(firestore, 'studentSubmissions', selectedViewClearance.submissionsUID);
+        await updateDoc(docRef, {
+            ...additionalFields,  // Spread conditional fields
             status: 'Pending',
             submittedAt: Timestamp.now(),
-            ...(ssgAdviserReceiptUrl && { SSGAdviserattachedReceiptURL: ssgAdviserReceiptUrl }),
-            ...(ptcaTreasurerReceiptUrl && { PTCATreasurerAttachedReceiptURL: ptcaTreasurerReceiptUrl }),
-
             studentGcashNumber,
             studentAmountInput,
         });
@@ -244,6 +270,7 @@ function DisapprovedStatus() {
         setIsLoading(false);
     }
   };
+
 
   const handleGcashNumber = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value.replace(/[^0-9]/g, ''); // Keep only numbers
@@ -524,6 +551,126 @@ function DisapprovedStatus() {
 
       {/* PTCA TREASURER */}
       {isModalOpen && selectedViewClearance?.teacherDepartment === 'PTCA TREASURER' &&(
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg w-[25rem] max-h-[80%] overflow-y-auto relative">
+            <h2 className="text-2xl mb-6 text-center font-semibold mt-5">Clearance Submitted</h2>
+              <div className="space-y-2">
+                <div className="space-y-1">
+                  <label className="block text-gray-700">Teacher Name:</label>
+                  <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedViewClearance?.teacherName} readOnly/>
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-gray-700">Teacher Department:</label>
+                  <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedViewClearance?.teacherDepartment} readOnly/>
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-gray-700">Teacher ID:</label>
+                  <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedViewClearance?.teacherID} readOnly/>
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-gray-700">Disapprovement Time:</label>
+                  <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedViewClearance?.disapprovedAt ? formatTimestamp(selectedViewClearance.disapprovedAt) : ''} readOnly/>
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-gray-700">Disapprovement Reason:</label>
+                  <textarea className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" 
+                    value={selectedViewClearance?.disapproveReason} 
+                    readOnly 
+                    rows={2}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-gray-700">Purpose:</label>
+                  <textarea className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" 
+                    value={selectedViewClearance?.purpose} 
+                    readOnly 
+                    rows={2}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-gray-700">Amount:</label>
+                  <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedViewClearance?.amount} readOnly/>
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-gray-700">QR Code (Scan this to pay)</label>
+                  {selectedViewClearance?.qrCodeURL && (
+                    <img
+                      src={selectedViewClearance.qrCodeURL}
+                      alt="Student Reciept"
+                      className="w-full p-2 border border-gray-300 rounded"
+                      style={{ maxHeight: '5000px', objectFit: 'contain' }}
+                    />
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <div className="text-left">
+                    <label htmlFor="studentGcashNumber" className="block text-gray-700 mt-2">GCASH Number</label>
+                    <input type="text" id="studentGcashNumber" className="w-full p-2 border border-gray-300 rounded" value={studentGcashNumber} onChange={handleGcashNumber} placeholder="Enter you GCash Number" required />
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700">Enter Amount</label>
+                  <input className="w-full p-2 border border-gray-300 rounded" onChange={handleAmountChange}
+                    type="text" value={`₱ ${studentAmountInput}`} placeholder="Enter Amount here" required
+                  />
+                </div>
+
+                
+                <div className="space-y-1">
+                  <label className="block text-gray-700">Attach Files:</label>
+                  <input 
+                    type="file" 
+                    multiple 
+                    onChange={(event) => handleFileChange(event, 0)} 
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+
+                  {/* Display file previews */}
+                  {filePreviews[0] && filePreviews[0].length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-gray-700">File Previews:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {filePreviews[0].map((previewUrl, i) => (
+                          <div key={i} className="mt-2 border border-gray-300 rounded overflow-hidden">
+                            <img 
+                              src={previewUrl} 
+                              alt={`Preview ${i + 1}`} 
+                              className="w-full p-2 border border-gray-300 rounded" 
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+              </div>
+              <div className="flex justify-center space-x-5">
+                <div className="flex justify-center space-x-5 mt-5">
+                  <button type="submit" onClick={handleResubmit} className={`bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300 w-32 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={isLoading}>
+                    {isLoading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 100 8v4a8 8 0 01-8-8z" />
+                        </svg>
+                        Submitt...
+                      </span>
+                    ) : (
+                      'Re-Submit'
+                    )}
+                  </button>
+                  <button type="button" onClick={closeModal} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition duration-300 w-32">
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DEAN SIDE */}
+      {isModalOpen && selectedViewClearance?.teacherDepartment === 'DEAN' &&(
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg w-[25rem] max-h-[80%] overflow-y-auto relative">
             <h2 className="text-2xl mb-6 text-center font-semibold mt-5">Clearance Submitted</h2>
