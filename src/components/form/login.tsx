@@ -42,7 +42,7 @@ const LoginForm = () => {
                 setError('Incorrect password.')
             } 
             else {
-                setError('Input your correct credential.')
+                setError('Email does not exist or the Password is incorrect. Please try again.')
             }
         } finally {
             setLoading(false)
@@ -51,7 +51,7 @@ const LoginForm = () => {
 
     return (
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-14 h-full">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-10 h-full">
             {error && <p className="text-red-500">{error}</p>}
             <div className="w-full flex flex-col gap-2">
                 <input type="email" className="w-full p-2 shadow-lg border text-center" placeholder="Input your Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
