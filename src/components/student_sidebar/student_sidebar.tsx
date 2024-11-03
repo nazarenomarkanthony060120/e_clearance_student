@@ -12,7 +12,6 @@ const StudentSidebar = ({ setCurrentSection }: any) => {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [studentID, setStudentID] = useState<string | null>(null);
-    const [isFetching, setIsFetching] = useState(true);
     const [openSubMenuIndex, setOpenSubMenuIndex] = useState<number | null>(null);
 
     const sidebars = [
@@ -20,7 +19,7 @@ const StudentSidebar = ({ setCurrentSection }: any) => {
             name: 'Clearance Status', section: 'Clearance Status',
             icon: MdFolder,
             subMenu: [
-                { name: 'None List', section: 'Clearance Status', icon: MdEditDocument },
+                { name: 'Clearance List', section: 'Clearance List', icon: MdEditDocument },
                 { name: 'Approved List', section: 'Approved List', icon: MdCheckCircle },
                 { name: 'Pending List', section: 'Pending List', icon: MdPending },
                 { name: 'Disapproved List', section: 'Disapproved List', icon: IoMdCloseCircle },
