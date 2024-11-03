@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { collection, getDocs, Timestamp, updateDoc, doc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { firestore } from '@/lib/firebase';
+import html2canvas from 'html2canvas';
+
 
 type ClearanceStatus = 'Approved' | 'Disapproved' | 'None' | 'Pending';
 
@@ -39,7 +41,7 @@ function ApprovedStatus() {
 
   const auth = getAuth();
   const currentUser = auth.currentUser;
-
+  const captureRef = useRef<HTMLDivElement>(null);
   const MAX_ATTEMPTS = 3;
 
   const fetchStudentSubmissionsData = async () => {
@@ -145,11 +147,24 @@ function ApprovedStatus() {
     setErrorMessage('No Approved Clearance yet.');  // Set the error message if there are no approved submissions
   }
   
+  const downloadAsImage = () => {
+    if (captureRef.current) {
+      html2canvas(captureRef.current).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'clearance_screenshot.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+  };  
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-gray-100 text-gray-800">
+    <div ref={captureRef} className="min-h-screen flex flex-col items-center bg-gray-100 text-gray-800">
       <section className="container mx-auto px-4 mt-10">
         {errorMessage && <p className="text-red-500 text-center italic">{errorMessage}</p>}
+	      <button onClick={downloadAsImage} className="ml-8 bg-blue-500 text-white px-4 py-2 rounded mb-6">
+          Download Clearances
+        </button>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 ml-8">
         {pendingSubmissions.map((submissionDataInfo, index) => {
           const { message, color } = getSubmissionStatusMessage(submissionDataInfo.submittedAt, submissionDataInfo.scheduleDate);
