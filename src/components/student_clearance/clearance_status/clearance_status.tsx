@@ -56,6 +56,9 @@
     const [ssgAdviserReciept, setSsgAdviserReciept] = useState<File | null>(null);
     const [ssgAdviserRecieptView, setSsgAdviserRecieptView] = useState<string | null>(null);
 
+    const [ptcaTreasurerReciept, setPtcaTreasurerReciept] = useState<File | null>(null);
+    const [ptcaTreasurerRecieptView, setPtcaTreasurerRecieptView] = useState<string | null>(null);
+
 
     const handleStudentNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
@@ -211,6 +214,8 @@
       setFilePreviews({});
       setSsgAdviserReciept(null);
       setSsgAdviserRecieptView('');
+      setPtcaTreasurerReciept(null);
+      setPtcaTreasurerRecieptView('');
       setStudentGcashNumber('');
       setStudentAmountInput('');
     };
@@ -263,6 +268,15 @@
               await uploadBytes(receiptRef, ssgAdviserReciept);
               SSGAdviserattachedReceiptURL = await getDownloadURL(receiptRef);
           }
+
+          // Upload SSG Adviser Receipt if exists
+          let PTCATreasurerAttachedReceiptURL: string | null = null;
+          if (ptcaTreasurerReciept) {
+              const teacherUID = selectedClearance.teacherUID;
+              const receiptRef = ref(storage, `PTCATREASURERSubmitlist/${uid}/${teacherUID}/${Date.now()}_${ptcaTreasurerReciept.name}`);
+              await uploadBytes(receiptRef, ptcaTreasurerReciept);
+              PTCATreasurerAttachedReceiptURL = await getDownloadURL(receiptRef);
+          }
   
           // Destructure selectedClearance with default values
           const {
@@ -291,6 +305,7 @@
               signature,
               studentGcashNumber,
               SSGAdviserattachedReceiptURL,
+              PTCATreasurerAttachedReceiptURL,
               studentAmountInput,
               purpose,
               amount,
@@ -330,8 +345,8 @@
       const filePreviews = files.map(file => URL.createObjectURL(file));
       setFilePreviews(prevState => ({ ...prevState, [index]: filePreviews }));
     };
-
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //SSG ADVISER HANDLE UPLOAD 
+    const ssgHandleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
         setSsgAdviserReciept(file); // Store the file object instead of just the name
@@ -340,6 +355,17 @@
         setSsgAdviserRecieptView(previewUrl);
       }
     };
+
+    //PTCA TREASURER HANDLE UPLOAD
+    const ptcaHandleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+          setPtcaTreasurerReciept(file); // Store the file object instead of just the name
+  
+          const previewUrl = URL.createObjectURL(file);
+          setPtcaTreasurerRecieptView(previewUrl);
+        }
+      };
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
@@ -514,7 +540,6 @@
           </div>
         )}
 
-
         {/* Modal for SSG ADVISER */}
         {modalVisible && selectedClearance && selectedClearance.teacherDepartment === 'SSG ADVISER' && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
@@ -566,11 +591,16 @@
                   </div>
                   <div className="space-y-1">
                     <label className="block text-gray-700">Purpose</label>
-                    <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedClearance.purpose} readOnly/>
+                    <textarea 
+                      className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" 
+                      value={selectedClearance.purpose} 
+                      readOnly 
+                      rows={4}
+                    />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="block text-gray-700 mt-5">QR Code (Scan this QR Code)</label>
+                    <label className="block text-gray-700 mt-5">QR Code (Scan this to pay)</label>
                     {selectedClearance?.qrCodeURL && (
                       <img
                         src={selectedClearance.qrCodeURL}
@@ -598,11 +628,134 @@
                   <div className="space-y-1">
                     <label className="block text-gray-700 mt-5">Attach your Receipt</label>
                     <input className="w-full p-2 border border-gray-300 rounded cursor-pointer" type="file"
-                      onChange={handleFileUpload} required/>
+                      onChange={ssgHandleFileUpload} required/>
                     {ssgAdviserRecieptView && (
                       <div className="mt-4">
                         <label className="block text-gray-700 mb-2">Preview:</label>
                         <img src={ssgAdviserRecieptView } alt="File Preview" className="w-full p-2 border border-gray-300 rounded"/>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex justify-center space-x-5">
+                    <div className="flex justify-center space-x-5 mt-5">
+                      <button type="submit" className={`bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300 w-32 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={isLoading}>
+                        {isLoading ? (
+                          <span className="flex items-center justify-center">
+                            <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 100 8v4a8 8 0 01-8-8z" />
+                            </svg>
+                            Submitt...
+                          </span>
+                        ) : (
+                          'Submit'
+                        )}
+                      </button>
+                      <button type="button" onClick={closeModal} className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition duration-300 w-32">
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal for PTCA TREASURER */}
+        {modalVisible && selectedClearance && selectedClearance.teacherDepartment === 'PTCA TREASURER' && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-lg w-[25rem] max-h-[80%] overflow-y-auto relative">
+              <h2 className="text-2xl mb-6 text-center font-semibold">Submit Clearance</h2>
+              <form onSubmit={handleSubmit}>
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <label className="block text-gray-700">Role</label>
+                    <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedClearance.teacherDepartment} readOnly/>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-gray-700">Teacher Name</label>
+                    <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedClearance.teacherName} readOnly/>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-gray-700">Clearance Deadline</label>
+                    <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={selectedClearance.scheduleDate} readOnly/>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-left">
+                      <h1 className="text-red-400 text-center mt-10">**STUDENT SUBMIT FORM**</h1>
+                      <label htmlFor="studentName" className="block text-gray-700 mt-5">Student Name</label>
+                      <input type="text" id="studentName" className="w-full p-2 border border-gray-300 rounded" value={studentNameInput} onChange={handleStudentNameChange} placeholder="Enter your Full Name" required/>
+                      {errorCondition && (
+                        <p className="text-red-500 text-sm mt-1">{errorCondition}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-left">
+                      <label htmlFor="studentID" className="block text-gray-700 mt-2">Student ID</label>
+                        <input type="text" id="studentID" className="w-full p-2 border border-gray-300 rounded" value={studentIDInput} onChange={handleStudentIDChange} placeholder="Enter your Student ID" required />
+                        {errorCondition && (
+                          <p className="text-red-500 text-sm mt-1">{errorCondition}</p>
+                        )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="space-y-1">
+                      <label className="block text-gray-700 mt-3">Amount</label>
+                      <input className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" type="text" value={`₱ ${selectedClearance.amount}`} readOnly/>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-gray-700">Purpose</label>
+                    <textarea 
+                      className="w-full p-2 border border-gray-300 rounded cursor-not-allowed" 
+                      value={selectedClearance.purpose} 
+                      readOnly 
+                      rows={4}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-gray-700 mt-5">QR Code (Scan this to pay)</label>
+                    {selectedClearance?.qrCodeURL && (
+                      <img
+                        src={selectedClearance.qrCodeURL}
+                        alt="QR Code"
+                        className="w-full p-2 border border-gray-300 rounded"
+                        style={{ maxHeight: '5000px', objectFit: 'contain' }}
+                      />
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-left">
+                      <label htmlFor="studentGcashNumber" className="block text-gray-700 mt-2">GCASH Number</label>
+                      <input type="text" id="studentGcashNumber" className="w-full p-2 border border-gray-300 rounded" value={studentGcashNumber} onChange={handleGcashNumber} placeholder="Enter you GCash Number" required />
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-gray-700">Enter Amount</label>
+                    <input className="w-full p-2 border border-gray-300 rounded" onChange={handleAmountChange}
+                      type="text" value={`₱ ${studentAmountInput}`} placeholder="Enter Amount here" required
+                    />
+								  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-gray-700 mt-5">Attach your Receipt</label>
+                    <input className="w-full p-2 border border-gray-300 rounded cursor-pointer" type="file"
+                      onChange={ptcaHandleFileUpload} required/>
+                    {ptcaTreasurerRecieptView && (
+                      <div className="mt-4">
+                        <label className="block text-gray-700 mb-2">Preview:</label>
+                        <img src={ptcaTreasurerRecieptView } alt="File Preview" className="w-full p-2 border border-gray-300 rounded"/>
                       </div>
                     )}
                   </div>
