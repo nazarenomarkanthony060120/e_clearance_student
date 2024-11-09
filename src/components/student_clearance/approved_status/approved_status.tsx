@@ -183,7 +183,13 @@ function ApprovedStatus() {
                       <span className="ml-2 text-gray-600">{submissionDataInfo.teacherName}</span>
                     </div>
                     <button onClick={() => openModal(submissionDataInfo)} className="text-blue-600 hover:underline font-semibold ml-3">View</button>
+                  </div>
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center">
+                      <span className="font-semibold text-gray-700">Student Name:</span>
+                      <span className="ml-2 text-gray-600">{submissionDataInfo.studentName}</span>
                     </div>
+                  </div>
                   <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center">
                       <span className="font-semibold text-gray-700">Approved Time:</span>
